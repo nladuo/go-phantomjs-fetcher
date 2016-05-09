@@ -1,0 +1,15 @@
+{
+	"load_images": false, 
+	"url": "http://www.baidu.com", 
+	"headers": {"User-Agent": ""}, 
+	"timeout": 120, 
+	"use_gzip": true, 
+	"allow_redirects": true, 
+	"method": "GET",
+	"js_script":"console.log('hello');",
+	"js_run_at":"document-end"
+}
+
+document.getElementById('su').attributes['value'];
+
+document.getElementById('kw').setAttribute("value", "github")
