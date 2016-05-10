@@ -30,11 +30,12 @@ const (
 )
 
 type Fetcher struct {
-	client         *http.Client
-	ProxyPort      string
-	AllowRedirects bool
-	phantomJSPid   int
-	DefaultOption  *Option
+	client             *http.Client
+	ProxyPort          string
+	AllowRedirects     bool
+	phantomJSPid       int
+	phantomJSHandlePtr uintptr
+	DefaultOption      *Option
 }
 
 func NewFetcher(port int, option *Option) (*Fetcher, error) {
@@ -69,8 +70,9 @@ func NewFetcher(port int, option *Option) (*Fetcher, error) {
 	return &fetcher, nil
 }
 
+//shutdown the phantomjs server in windows or linux
 func (this *Fetcher) ShutDownPhantomJSServer() {
-	syscall.Kill(this.phantomJSPid, syscall.SIGKILL)
+	killProcess(this.phantomJSPid, this.phantomJSHandlePtr)
 }
 
 func (this *Fetcher) startPhantomJSServer(phantomJSPath, fetcherJSPath string) error {
@@ -79,8 +81,9 @@ func (this *Fetcher) startPhantomJSServer(phantomJSPath, fetcherJSPath string) e
 		Env:   os.Environ(),
 		Files: []uintptr{os.Stdin.Fd(), os.Stdout.Fd(), os.Stderr.Fd()},
 	}
-	pid, execErr := syscall.ForkExec(phantomJSPath, args, execSpec)
+	pid, handlePtr, execErr := syscall.StartProcess(phantomJSPath, args, execSpec)
 	this.phantomJSPid = pid
+	this.phantomJSHandlePtr = handlePtr
 	return execErr
 }
 
@@ -92,6 +95,18 @@ func (this *Fetcher) Get(url string) (*Response, error) {
 //send httpGet request by phantomjs with the js_script
 func (this *Fetcher) GetWithJS(url, js_script, js_run_at string) (*Response, error) {
 	return this.GetWithOption(url, js_script, js_run_at, this.DefaultOption)
+}
+
+type postData struct {
+	LoadImages     bool              `json:"load_images"`
+	Url            string            `json:"url"`
+	Headers        map[string]string `json:"headers"`
+	Timeout        int               `json:"timeout"`
+	UseGzip        bool              `json:"use_gzip"`
+	AllowRedirects bool              `json:"allow_redirects"`
+	Method         string            `json:"method"`
+	JsScript       string            `json:"js_script"`
+	JsRunAt        string            `json:"js_run_at"`
 }
 
 //send httpGet request by phantomjs with the js_script and some option like headers
@@ -175,16 +190,4 @@ func (this *Fetcher) getOSType() string {
 func (this *Fetcher) exist(filename string) bool {
 	_, err := os.Stat(filename)
 	return err == nil || os.IsExist(err)
-}
-
-type postData struct {
-	LoadImages     bool              `json:"load_images"`
-	Url            string            `json:"url"`
-	Headers        map[string]string `json:"headers"`
-	Timeout        int               `json:"timeout"`
-	UseGzip        bool              `json:"use_gzip"`
-	AllowRedirects bool              `json:"allow_redirects"`
-	Method         string            `json:"method"`
-	JsScript       string            `json:"js_script"`
-	JsRunAt        string            `json:"js_run_at"`
 }
