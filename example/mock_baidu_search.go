@@ -1,45 +1,36 @@
-// an example to mock search in baidu
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/nladuo/go-phantomjs-fetcher"
+	"strings"
 )
 
-var data = `
-{
-	"load_images": false, 
-	"url": "http://www.baidu.com", 
-	"headers": {"User-Agent": ""}, 
-	"timeout": 120, 
-	"use_gzip": true, 
-	"allow_redirects": true, 
-	"method": "GET",
-	"js_script":"function(){document.getElementById('kw').setAttribute('value', 'github');document.getElementById('su').click();}",
-	"js_run_at":"document-end"
-}`
-
 func main() {
-	buffer := bytes.NewBuffer([]byte(data))
-	res, err := http.Post("http://localhost:2000", "application/json;charset=utf-8", buffer)
+	//create a fetcher which seems to a httpClient
+	fetcher, err := phantomjs.NewFetcher(2000, nil)
+	defer fetcher.ShutDownPhantomJSServer()
+	if err != nil {
+		panic(err)
+	}
+	//inject the javascript you want to run in the webpage just like in chrome console.
+	js_script := "function(){document.getElementById('kw').setAttribute('value', 'github');document.getElementById('su').click();}"
+	//run the injected js_script at the end of loading html
+	js_run_at := phantomjs.RUN_AT_DOC_END
+	//send httpGet request with injected js
+	resp, err := fetcher.GetWithJS("http://www.baidu.com", js_script, js_run_at)
 	if err != nil {
 		panic(err)
 	}
 
-	byte_data, err := ioutil.ReadAll(res.Body)
+	//select search results by goquery
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(resp.Content))
 	if err != nil {
 		panic(err)
 	}
-	//fmt.Println(string(byte_data))
-	res.Body.Close()
-
-	var result map[string]interface{}
-	err = json.Unmarshal(byte_data, &result)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(result["content"])
+	fmt.Println("Results:")
+	doc.Find(".c-container h3 a").Each(func(i int, contentSelection *goquery.Selection) {
+		fmt.Println(i+1, "-->", contentSelection.Text())
+	})
 }

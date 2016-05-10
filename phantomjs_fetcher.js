@@ -14,17 +14,12 @@ if (system.args.length !== 2) {
 } else {
   port = system.args[1];
   server = require('webserver').create();
-  console.debug = function(){};
 
   service = server.listen(port, {
     'keepAlive': false
   }, function (request, response) {
     phantom.clearCookies();
 
-    console.log(JSON.stringify(request.post))
-    console.log(JSON.stringify(request.postRaw))
-
-    //console.debug(JSON.stringify(request, null, 4));
     // check method
     if (request.method == 'GET') {
       body = "method not allowed!";
@@ -47,13 +42,9 @@ if (system.args.length !== 2) {
         script_result = null;
 
     var fetch = JSON.parse(request.post);
-    console.debug(JSON.stringify(fetch, null, 2));
 
     // create and set page
     var page = webpage.create();
-    page.onConsoleMessage = function(msg) {
-        console.log('console: ' + msg);
-    };
     page.viewportSize = {
       width: fetch.js_viewport_width || 1024,
       height: fetch.js_viewport_height || 768*3
@@ -77,7 +68,6 @@ if (system.args.length !== 2) {
     page.onInitialized = function() {
       if (!script_executed && fetch.js_script && fetch.js_run_at === "document-start") {
         script_executed = true;
-        console.log('running document-start script.');
         script_result = page.evaluateJavaScript(fetch.js_script);
       }
     };
@@ -85,35 +75,28 @@ if (system.args.length !== 2) {
       page_loaded = true;
       if (!script_executed && fetch.js_script && fetch.js_run_at !== "document-start") {
         script_executed = true;
-        console.log('running document-end script.');
         script_result = page.evaluateJavaScript(fetch.js_script);
       }
-      console.debug("waiting "+wait_before_end+"ms before finished.");
       end_time = Date.now() + wait_before_end;
       setTimeout(make_result, wait_before_end+10, page);
     };
     page.onResourceRequested = function(request) {
-      console.debug("Starting request: #"+request.id+" ["+request.method+"]"+request.url);
       end_time = null;
     };
     page.onResourceReceived = function(response) {
-      console.debug("Request finished: #"+response.id+" ["+response.status+"]"+response.url);
       if (first_response === null && response.status != 301 && response.status != 302) {
         first_response = response;
       }
       if (page_loaded) {
-        console.debug("waiting "+wait_before_end+"ms before finished.");
         end_time = Date.now() + wait_before_end;
         setTimeout(make_result, wait_before_end+10, page);
       }
     }
     page.onResourceError = page.onResourceTimeout=function(response) {
-      console.info("Request error: #"+response.id+" ["+response.errorCode+"="+response.errorString+"]"+response.url);
       if (first_response === null) {
         first_response = response;
       }
       if (page_loaded) {
-        console.debug("waiting "+wait_before_end+"ms before finished.");
         end_time = Date.now() + wait_before_end;
         setTimeout(make_result, wait_before_end+10, page);
       }
@@ -164,7 +147,6 @@ if (system.args.length !== 2) {
 
       page.close();
       finished = true;
-      console.log("["+result.status_code+"] "+result.orig_url+" "+result.time)
 
       var body = JSON.stringify(result, null, 2);
       response.writeHead(200, {
@@ -180,9 +162,11 @@ if (system.args.length !== 2) {
         throw "No response received!";
       }
 
-      var cookies = {};
+      var cookies = [];
       page.cookies.forEach(function(e) {
-        cookies[e.name] = e.value;
+        cookie = e;
+        delete cookie.expires
+        cookies.push(cookie)
       });
 
       var headers = {};
@@ -191,7 +175,6 @@ if (system.args.length !== 2) {
           headers[e.name] = e.value;
         });
       }
-      console.log(script_result);
 
       return {
         orig_url: fetch.url,
