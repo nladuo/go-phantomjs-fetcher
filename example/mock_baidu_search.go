@@ -9,7 +9,7 @@ import (
 
 func main() {
 	//create a fetcher which seems to a httpClient
-	fetcher, err := phantomjs.NewFetcher(2000, nil)
+	fetcher, err := phantomjs.NewFetcher(2016, nil)
 	defer fetcher.ShutDownPhantomJSServer()
 	if err != nil {
 		panic(err)
