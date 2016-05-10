@@ -11,7 +11,10 @@ go get github.com/nladuo/go-phantomjs-fetcher
 ```
 
 ## Example
-[mock_baidu_search](./example/mock_baidu_search.go)  
+```shell
+cd $GOPATH/src/github.com/nladuo/go-phantomjs-fetcher
+go run ./example/mock_baidu_search.go
+```
 ![mock_baidu_search](./example/mock_baidu_search.png)
 ## LICENSE
 MIT
