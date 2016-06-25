@@ -7,4 +7,5 @@ type Option struct {
 	AllowRedirects bool
 	Time           float64
 	JsScriptResult string
+	FetcherJsPath  string
 }

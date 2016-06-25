@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -16,7 +17,7 @@ import (
 
 const (
 	ErrPhantomJSNotFound = "\"phantomjs\": executable file not found in $PATH"
-	ErrFetcherJSNotFound = "cannot find $GOPATH/github.com/nladuo/go-phantomjs-fetcher/phantomjs_fetcher.js"
+	ErrFetcherJSNotFound = "cannot find ./phantomjs_fetcher.js or $GOPATH/github.com/src/nladuo/go-phantomjs-fetcher/phantomjs_fetcher.js"
 )
 
 const (
@@ -47,7 +48,7 @@ func NewFetcher(port int, option *Option) (*Fetcher, error) {
 	}
 	fetcherJSPath, err := fetcher.checkFetcherJS()
 	if err != nil {
-		return nil, errors.New(ErrFetcherJSNotFound)
+		return nil, err
 	}
 	err = fetcher.startPhantomJSServer(phantomJSPath, fetcherJSPath)
 	if err != nil {
@@ -157,9 +158,31 @@ func (this *Fetcher) checkPhantomJS() (string, error) {
 	return phantomJSPath, nil
 }
 
+// exePath returns the executable path.
+func exePath() (string, error) {
+	file, err := exec.LookPath(os.Args[0])
+	if err != nil {
+		return "", err
+	}
+	return filepath.Abs(file)
+}
+
 //check the existence of
 //$GOPATH/github.com/nladuo/go-phantomjs-fetcher/phantomjs_fetcher.js
 func (this *Fetcher) checkFetcherJS() (string, error) {
+	if this.DefaultOption != nil && len(this.DefaultOption.FetcherJsPath) > 0 {
+		return this.DefaultOption.FetcherJsPath, nil
+	}
+	p, err := exePath()
+	if err != nil {
+		return "", err
+	}
+
+	fetcherJSPath := filepath.Join(filepath.Dir(p), "phantomjs_fetcher.js")
+	if this.exist(fetcherJSPath) {
+		return fetcherJSPath, nil
+	}
+
 	str := os.Getenv("GOPATH")
 	var paths []string
 	if this.getOSType() == type_UNIX {
