@@ -65,6 +65,7 @@ func NewFetcher(port int, option *Option) (*Fetcher, error) {
 			Timeout:        120,
 			UseGzip:        true,
 			AllowRedirects: true,
+			Load_images: false,
 		}
 	}
 
