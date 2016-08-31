@@ -6,7 +6,7 @@
 You can download the phantomjs executable binary [here](http://phantomjs.org/download.html). And add it to your $PATH.
 ### Clone the Source
 ``` shell
-go get github.com/nladuo/go-phantomjs-fetcher
+go get github.com/hldh214/go-phantomjs-fetcher
 ```
 
 ## LICENSE
