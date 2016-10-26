@@ -10,14 +10,14 @@ go get github.com/PuerkitoBio/goquery           # used in example
 go get github.com/refusetofeel/go-phantomjs-fetcher
 ```
 
-## Example
+## Example - Normal usage
 ```shell
 cd $GOPATH/src/github.com/refusetofeel/go-phantomjs-fetcher
 go run ./example/normal/mock_baidu_search.go
 ```
 ![mock_baidu_search](./example/normal/mock_baidu_search.png)
 
-## Example 2
+## Example 2 - Regex used to cancel unneeded requests
 Using a heavy angularjs website to test  
 ```shell
 cd $GOPATH/src/github.com/refusetofeel/go-phantomjs-fetcher
