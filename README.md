@@ -13,8 +13,21 @@ go get github.com/refusetofeel/go-phantomjs-fetcher
 ## Example
 ```shell
 cd $GOPATH/src/github.com/refusetofeel/go-phantomjs-fetcher
-go run ./example/mock_baidu_search.go
+go run ./example/normal/mock_baidu_search.go
 ```
-![mock_baidu_search](./example/mock_baidu_search.png)
+![mock_baidu_search](./example/normal/mock_baidu_search.png)
+
+## Example 2
+Using a heavy angularjs website to test  
+```shell
+cd $GOPATH/src/github.com/refusetofeel/go-phantomjs-fetcher
+go run ./example/regex/mock_regex_search.go
+```
+Without Regex:  
+![without_regex](./example/regex/WithoutRegex.jpg)
+
+With Regex:  
+![with_regex](./example/regex/WithRegex.jpg)
+
 ## LICENSE
 MIT
