@@ -27,7 +27,7 @@ Without Regex:
 ![without_regex](./example/regex/WithoutRegex.jpg)
 
 With Regex:  
-![with_regex](./example/regex/WithRegex.jpg)
+![with_regex](./example/regex/WIthRegex.jpg)
 
 ## LICENSE
 MIT
