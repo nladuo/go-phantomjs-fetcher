@@ -3,13 +3,13 @@ package main
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/nladuo/go-phantomjs-fetcher"
+	"github.com/refusetofeel/go-phantomjs-fetcher"
 	"strings"
 )
 
 func main() {
 	//create a fetcher which seems to a httpClient
-	fetcher, err := phantomjs.NewFetcher(2016, nil)
+	fetcher, err := phantomjs.NewFetcher(2016, nil,"")
 	defer fetcher.ShutDownPhantomJSServer()
 	if err != nil {
 		panic(err)

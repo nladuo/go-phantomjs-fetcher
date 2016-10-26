@@ -32,23 +32,35 @@ if (system.args.length !== 2) {
       response.closeGracefully();
       return;
     }
-    
+
     var first_response = null,
         finished = false,
         page_loaded = false,
         start_time = Date.now(),
         end_time = null,
         script_executed = false,
-        script_result = null;
+        script_result = null,
+        avoidAssets = null;
 
     var fetch = JSON.parse(request.post);
+
+    //Grab string of assets to avoid, in regex form IE: ".css|.js|.php|.jpg|adsense|google" if requested url has any of these matches, it will .abort() the request
+    //This allows for a faster load of the page, since it does not need to load/download unneeded urls you set
+    //if fetch.avoid_assets = ".css|.php"
+    if(fetch.avoid_assets === ""){
+      avoidAssets = new RegExp("//gi");
+    }else{
+      avoidAssets = new RegExp(fetch.avoid_assets,'ig');
+    }
+    //avoidAssets will now be = /.css|.php/gi in regex form.
+
 
     // create and set page
     var page = webpage.create();
     page.viewportSize = {
       width: fetch.js_viewport_width || 1024,
       height: fetch.js_viewport_height || 768*3
-    }
+    };
     if (fetch.headers) {
       fetch.headers['Accept-Encoding'] = undefined;
       fetch.headers['Connection'] = undefined;
@@ -80,7 +92,13 @@ if (system.args.length !== 2) {
       end_time = Date.now() + wait_before_end;
       setTimeout(make_result, wait_before_end+10, page);
     };
-    page.onResourceRequested = function(request) {
+    page.onResourceRequested = function(request, network) {
+      if((avoidAssets).test(request.url)){
+        network.abort();
+        // console.log('Blocked: '+ request.url);
+      }else{
+        // console.log('Allowed: '+ request.url);
+      }
       end_time = null;
     };
     page.onResourceReceived = function(response) {
@@ -91,7 +109,7 @@ if (system.args.length !== 2) {
         end_time = Date.now() + wait_before_end;
         setTimeout(make_result, wait_before_end+10, page);
       }
-    }
+    };
     page.onResourceError = page.onResourceTimeout=function(response) {
       if (first_response === null) {
         first_response = response;
@@ -100,7 +118,7 @@ if (system.args.length !== 2) {
         end_time = Date.now() + wait_before_end;
         setTimeout(make_result, wait_before_end+10, page);
       }
-    }
+    };
 
     // make sure request will finished
     setTimeout(function(page) {
@@ -142,7 +160,7 @@ if (system.args.length !== 2) {
           cookies: {},
           time: (Date.now() - start_time) / 1000,
           save: fetch.save
-        }
+        };
       }
 
       page.close();
@@ -165,8 +183,8 @@ if (system.args.length !== 2) {
       var cookies = [];
       page.cookies.forEach(function(e) {
         cookie = e;
-        delete cookie.expires
-        cookies.push(cookie)
+        delete cookie.expires;
+        cookies.push(cookie);
       });
 
       var headers = {};
@@ -187,7 +205,7 @@ if (system.args.length !== 2) {
         time: (Date.now() - start_time) / 1000,
         js_script_result: script_result,
         save: fetch.save
-      }
+      };
     }
   });
 
