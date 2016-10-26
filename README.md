@@ -19,6 +19,8 @@ go run ./example/normal/mock_baidu_search.go
 
 ## Example 2 - Regex used to cancel unneeded requests
 Using a heavy angularjs website to test  
+Speeds will be faster when using phantomjs on a dedicated server system, my samples tests on my LINUX server where 2+ seconds less then shown.  
+These are tests done on Windows 8  
 ```shell
 cd $GOPATH/src/github.com/refusetofeel/go-phantomjs-fetcher
 go run ./example/regex/mock_regex_search.go
