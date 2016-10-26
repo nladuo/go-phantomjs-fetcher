@@ -16,8 +16,12 @@ import (
 )
 
 const (
+	CurrentJSLocation = "/src/github.com/refusetofeel/go-phantomjs-fetcher/phantomjs_fetcher.js"
+)
+
+const (
 	ErrPhantomJSNotFound = "\"phantomjs\": executable file not found in $PATH"
-	ErrFetcherJSNotFound = "cannot find ./phantomjs_fetcher.js or $GOPATH/github.com/src/nladuo/go-phantomjs-fetcher/phantomjs_fetcher.js"
+	ErrFetcherJSNotFound = "cannot find ./phantomjs_fetcher.js or $GOPATH" + CurrentJSLocation
 )
 
 const (
@@ -34,12 +38,13 @@ type Fetcher struct {
 	client             *http.Client
 	ProxyPort          string
 	AllowRedirects     bool
+	AvoidAssets        string
 	phantomJSPid       int
 	phantomJSHandlePtr uintptr
 	DefaultOption      *Option
 }
 
-func NewFetcher(port int, option *Option) (*Fetcher, error) {
+func NewFetcher(port int, option *Option, match string) (*Fetcher, error) {
 	var fetcher Fetcher
 	fetcher.ProxyPort = strconv.FormatInt(int64(port), 10)
 	phantomJSPath, err := fetcher.checkPhantomJS()
@@ -55,16 +60,21 @@ func NewFetcher(port int, option *Option) (*Fetcher, error) {
 		return nil, err
 	}
 	time.Sleep(2 * time.Second)
+	avoidAsset := ""
+	if match != "" {
+		avoidAsset = match
+	}
 	if option != nil {
 		fetcher.DefaultOption = option
 	} else {
 		headers := make(map[string]string)
-		headers["User-Agent"] = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.110 Safari/537.36"
+		headers["User-Agent"] = "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.71 Safari/537.36"
 		fetcher.DefaultOption = &Option{
 			Headers:        headers,
 			Timeout:        120,
 			UseGzip:        true,
 			AllowRedirects: true,
+			AvoidAssets:    avoidAsset,
 		}
 	}
 
@@ -105,6 +115,7 @@ type postData struct {
 	Timeout        int               `json:"timeout"`
 	UseGzip        bool              `json:"use_gzip"`
 	AllowRedirects bool              `json:"allow_redirects"`
+	AvoidAssets    string            `json:"avoid_assets"`
 	Method         string            `json:"method"`
 	JsScript       string            `json:"js_script"`
 	JsRunAt        string            `json:"js_run_at"`
@@ -119,6 +130,7 @@ func (this *Fetcher) GetWithOption(url, js_script, js_run_at string, option *Opt
 		Timeout:        option.Timeout,
 		UseGzip:        option.UseGzip,
 		AllowRedirects: option.AllowRedirects,
+		AvoidAssets:    option.AvoidAssets,
 		Method:         "GET",
 		JsScript:       js_script,
 		JsRunAt:        js_run_at,
@@ -168,7 +180,7 @@ func exePath() (string, error) {
 }
 
 //check the existence of
-//$GOPATH/github.com/nladuo/go-phantomjs-fetcher/phantomjs_fetcher.js
+//CurrentJSLocation
 func (this *Fetcher) checkFetcherJS() (string, error) {
 	if this.DefaultOption != nil && len(this.DefaultOption.FetcherJsPath) > 0 {
 		return this.DefaultOption.FetcherJsPath, nil
@@ -191,7 +203,7 @@ func (this *Fetcher) checkFetcherJS() (string, error) {
 		paths = strings.Split(str, ";")
 	}
 	for _, path := range paths {
-		fetcherJSPath := path + "/src/github.com/nladuo/go-phantomjs-fetcher/phantomjs_fetcher.js"
+		fetcherJSPath := path + CurrentJSLocation
 		if this.exist(fetcherJSPath) {
 			return fetcherJSPath, nil
 		}
