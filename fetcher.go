@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -31,12 +30,13 @@ const (
 )
 
 type Fetcher struct {
-	client             *http.Client
-	ProxyPort          string
-	AllowRedirects     bool
-	phantomJSPid       int
-	phantomJSHandlePtr uintptr
-	DefaultOption      *Option
+	client         *http.Client
+	ProxyPort      string
+	AllowRedirects bool
+	//phantomJSPid   int
+	//phantomJSHandlePtr uintptr
+	DefaultOption *Option
+	cmd           *exec.Cmd
 }
 
 func NewFetcher(port int, option *Option) (*Fetcher, error) {
@@ -73,19 +73,18 @@ func NewFetcher(port int, option *Option) (*Fetcher, error) {
 
 //shutdown the phantomjs server in windows or linux
 func (this *Fetcher) ShutDownPhantomJSServer() {
-	killProcess(this.phantomJSPid, this.phantomJSHandlePtr)
+	this.cmd.Process.Kill()
 }
 
 func (this *Fetcher) startPhantomJSServer(phantomJSPath, fetcherJSPath string) error {
-	args := []string{"phantomjs", fetcherJSPath, this.ProxyPort}
-	execSpec := &syscall.ProcAttr{
-		Env:   os.Environ(),
-		Files: []uintptr{os.Stdin.Fd(), os.Stdout.Fd(), os.Stderr.Fd()},
-	}
-	pid, handlePtr, execErr := syscall.StartProcess(phantomJSPath, args, execSpec)
-	this.phantomJSPid = pid
-	this.phantomJSHandlePtr = handlePtr
-	return execErr
+	args := []string{fetcherJSPath, this.ProxyPort}
+	cmd := exec.Command("phantomjs", args...)
+	cmd.Env = os.Environ()
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	this.cmd = cmd
+	return cmd.Start()
 }
 
 //send httpGet request by phantomjs
