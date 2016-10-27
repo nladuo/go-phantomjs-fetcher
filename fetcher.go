@@ -16,7 +16,7 @@ import (
 
 const (
 	ErrPhantomJSNotFound = "\"phantomjs\": executable file not found in $PATH"
-	ErrFetcherJSNotFound = "cannot find ./phantomjs_fetcher.js or $GOPATH/github.com/src/nladuo/go-phantomjs-fetcher/phantomjs_fetcher.js"
+	ErrFetcherJSNotFound = "cannot find ./phantomjs_fetcher.js or $GOPATH/github.com/src/hldh214/go-phantomjs-fetcher/phantomjs_fetcher.js"
 )
 
 const (
@@ -65,6 +65,7 @@ func NewFetcher(port int, option *Option) (*Fetcher, error) {
 			Timeout:        120,
 			UseGzip:        true,
 			AllowRedirects: true,
+			Load_images: false,
 		}
 	}
 
@@ -167,7 +168,7 @@ func exePath() (string, error) {
 }
 
 //check the existence of
-//$GOPATH/github.com/nladuo/go-phantomjs-fetcher/phantomjs_fetcher.js
+//$GOPATH/github.com/hldh214/go-phantomjs-fetcher/phantomjs_fetcher.js
 func (this *Fetcher) checkFetcherJS() (string, error) {
 	if this.DefaultOption != nil && len(this.DefaultOption.FetcherJsPath) > 0 {
 		return this.DefaultOption.FetcherJsPath, nil
@@ -190,7 +191,7 @@ func (this *Fetcher) checkFetcherJS() (string, error) {
 		paths = strings.Split(str, ";")
 	}
 	for _, path := range paths {
-		fetcherJSPath := path + "/src/github.com/nladuo/go-phantomjs-fetcher/phantomjs_fetcher.js"
+		fetcherJSPath := path + "/src/github.com/hldh214/go-phantomjs-fetcher/phantomjs_fetcher.js"
 		if this.exist(fetcherJSPath) {
 			return fetcherJSPath, nil
 		}
