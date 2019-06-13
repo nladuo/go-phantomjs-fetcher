@@ -200,9 +200,8 @@ func (this *Fetcher) checkFetcherJS() (string, error) {
 
 // get os_type, *nix or windows
 func (this *Fetcher) getOSType() string {
-	//in *nix os, contain ls in $PATH.
-	_, err := exec.LookPath("ls")
-	if err != nil {
+
+	if os.PathSeparator == '\\' && os.PathListSeparator == ';' {
 		return type_WINDOWS
 	}
 	return type_UNIX
